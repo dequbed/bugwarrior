@@ -1,6 +1,7 @@
 import six
 import requests
 import re
+import json
 
 from bugwarrior.config import die, asbool
 from bugwarrior.services import Issue, IssueService, ServiceClient
@@ -23,17 +24,16 @@ class OpenProjectClient(ServiceClient):
         # TODO: if issue_limit is greater than 100, implement pagination to return all issues.
         # Leave the implementation of this to the unlucky soul with >100 issues assigned to them.
         if issue_limit is not None:
-            args["limit"] = issue_limit
+            args["pageSize"] = issue_limit
 
         if only_if_assigned:
-            args["assigned_to_id"] = 'me'
-        return self.call_api("/issues.json", args)["issues"]
+            args["filters"] = [{"assignee": {"operator": "=", "values": ["me"]}}]
+        return self.call_api("/api/v3/work_packages", args)["issues"]
 
     def call_api(self, uri, params):
         url = self.url.rstrip("/") + uri
-        kwargs = {
-            'headers': {'X-Redmine-API-Key': self.key},
-            'params': params}
+        kwargs = { 'params': params }
+
 
         if self.auth:
             kwargs['auth'] = self.auth
@@ -44,7 +44,7 @@ class OpenProjectClient(ServiceClient):
 
 
 class OpenProjectIssue(Issue):
-    URL = 'redmineurl'
+    URL = 'openprojecturl'
     SUBJECT = 'redminesubject'
     ID = 'redmineid'
     DESCRIPTION = 'redminedescription'
@@ -264,7 +264,8 @@ class RedMineService(IssueService):
 
     def issues(self):
         only_if_assigned = self.config.get('only_if_assigned', False)
-        issues = self.client.find_issues(self.issue_limit, only_if_assigned)
+        raw_issues_response = self.client.find_issues(self.issue_limit, only_if_assigned)
+        issues = raw_issues_response['_embedded']['elements']
         log.debug(" Found %i total.", len(issues))
         for issue in issues:
             yield self.get_issue_for_record(issue)
