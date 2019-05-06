@@ -252,12 +252,14 @@ class JiraService(IssueService):
     def __init__(self, *args, **kw):
         super(JiraService, self).__init__(*args, **kw)
         self.username = self.config.get('username')
+        self.username = self.username.replace('@', '\u0040')
         self.url = self.config.get('base_uri')
         password = self.get_password('password', self.username)
 
         default_query = 'assignee=' + self.username + \
             ' AND resolution is null'
         self.query = self.config.get('query', default_query)
+        log.debug("JQL: %r", self.query)
         if password == '@kerberos':
             auth = dict(kerberos=True)
         else:
