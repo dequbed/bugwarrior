@@ -77,6 +77,7 @@ setup(name='bugwarrior',
       bugzilla=bugwarrior.services.bz:BugzillaService
       teamlab=bugwarrior.services.teamlab:TeamLabService
       redmine=bugwarrior.services.redmine:RedMineService
+      openproject=bugwarrior.services.openproject:OpenProjectService
       activecollab2=bugwarrior.services.activecollab2:ActiveCollab2Service
       activecollab=bugwarrior.services.activecollab:ActiveCollabService
       jira=bugwarrior.services.jira:JiraService
